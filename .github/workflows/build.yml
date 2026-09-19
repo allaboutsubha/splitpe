@@ -16,8 +16,10 @@ jobs:
           flutter-version: '3.x'
           channel: 'stable'
 
-      - name: Install Dependencies
-        run: flutter pub get
+      - name: Install Dependencies & Launcher Icons
+        run: |
+          flutter pub get
+          dart run flutter_launcher_icons
 
       - name: Build APK
         run: flutter build apk --release
