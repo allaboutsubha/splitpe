@@ -54,13 +54,11 @@ class _SplitPeWebViewScreenState extends State<SplitPeWebViewScreen> {
             });
           },
           onWebResourceError: (WebResourceError error) {
-            // ইন্টারনেট বা পেজ লোড ফেইল করলে এরর স্ক্রিন দেখাবে
             setState(() {
               _hasConnection = false;
               _isLoading = false;
             });
           },
-          // UPI Payment বা External Link হ্যান্ডেল করার জন্য
           onNavigationRequest: (NavigationRequest request) async {
             if (request.url.startsWith('upi://') ||
                 request.url.startsWith('otpauth://') ||
@@ -114,7 +112,6 @@ class _SplitPeWebViewScreenState extends State<SplitPeWebViewScreen> {
     _controller.reload();
   }
 
-  // ব্যাক বাটন প্রেস করলে কনফার্মেশন পপ-আপ
   Future<bool> _onWillPop() async {
     if (await _controller.canGoBack()) {
       _controller.goBack();
@@ -152,7 +149,6 @@ class _SplitPeWebViewScreenState extends State<SplitPeWebViewScreen> {
         body: SafeArea(
           child: Stack(
             children: [
-              // যদি ইন্টারনেট বা পেজে সমস্যা থাকে, সুন্দর এরর স্ক্রিন দেখাবে
               if (!_hasConnection)
                 Center(
                   child: Padding(
@@ -178,11 +174,10 @@ class _SplitPeWebViewScreenState extends State<SplitPeWebViewScreen> {
                           onPressed: _reloadPage,
                           icon: const Icon(Icons.refresh),
                           label: const Text('Refresh'),
-                          style: ElevatedButton.appBarTheme(context).style ??
-                              ElevatedButton.styleFrom(
-                                backgroundColor: Colors.indigo,
-                                foregroundColor: Colors.white,
-                              ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.indigo,
+                            foregroundColor: Colors.white,
+                          ),
                         ),
                       ],
                     ),
@@ -191,7 +186,6 @@ class _SplitPeWebViewScreenState extends State<SplitPeWebViewScreen> {
               else
                 WebViewWidget(controller: _controller),
 
-              // লোডিং ইন্ডিকেটর
               if (_isLoading && _hasConnection)
                 const Center(
                   child: CircularProgressIndicator(),
