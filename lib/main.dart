@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
-// Import for Android features to handle camera permissions in WebView
 import 'package:webview_flutter_android/webview_flutter_android.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 void main() {
   runApp(const SplitPeApp());
@@ -32,23 +32,39 @@ class _SplitPeWebViewScreenState extends State<SplitPeWebViewScreen> {
   @override
   void initState() {
     super.initState();
-    
+    // অ্যাপ চালু হওয়ার সাথে সাথে ক্যামেরা পারমিশন চেয়ে নেওয়া
+    _requestCameraPermission();
+
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..loadRequest(Uri.parse('https://splitpe-lovat.vercel.app/'));
 
-    // Android-er WebView-e Camera ba Mic permission popup allow korar jonno ei block ti dorkar
+    // Android WebView-এর জন্য ক্যামেরা ও মিডিয়া পারমিশন হ্যান্ডেল করা
     if (_controller.platform is AndroidWebViewController) {
       final AndroidWebViewController androidController =
           _controller.platform as AndroidWebViewController;
       androidController.setMediaPlaybackRequiresUserGesture(false);
       
-      // Camera permission request automatically handle korar jonno
       androidController.setOnPlatformPermissionRequest(
-        (PlatformWebViewPermissionRequest request) {
+        (PlatformWebViewPermissionRequest request) async {
+          // ওয়েভভিউ থেকে ক্যামেরা চাইলে পপ-আপ বা পারমিশন গ্র্যান্ট করা
+          var status = await Permission.camera.status;
+          if (!status.isGranted) {
+            await Permission.camera.request();
+          }
           request.grant();
         },
       );
+    }
+  }
+
+  // ক্যামেরা পারমিশনের ফাংশন
+  Future<void> _requestCameraPermission() async {
+    var status = await Permission.camera.status;
+    if (!status.isDenied && !status.isGranted) {
+      await Permission.camera.request();
+    } else if (status.isDenied) {
+      await Permission.camera.request();
     }
   }
 
