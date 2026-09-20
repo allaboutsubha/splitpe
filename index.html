@@ -2,10 +2,9 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 <meta name="theme-color" content="#635BFF" />
-<meta name="description" content="SplitPay — Scan. Split. Pay. A UPI QR payment splitting tool." />
-<title>SplitPay — Scan. Split. Pay.</title>
+<title>SplitPay - Scan. Split. Pay.</title>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script>
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js" defer></script>
@@ -26,6 +25,7 @@
   --gray-700: #374151;
   --gray-600: #4B5563;
   --gray-500: #6B7280;
+  --gray-400: #9CA3AF;
   --gray-300: #D1D5DB;
   --gray-200: #E5E7EB;
   --gray-100: #F3F4F6;
@@ -42,11 +42,57 @@
   --mono: 'JetBrains Mono', ui-monospace, monospace;
   --header-h: 72px;
   --container: 780px;
+  --text-muted: #6B7280;
+  --input-bg: #FFFFFF;
+  --skeleton-base: #E5E7EB;
+  --skeleton-shine: #F3F4F6;
 }
+
+/* Dark Mode */
+body.dark {
+  --bg: #0B0F1A;
+  --card: #151B2B;
+  --dark: #F1F5F9;
+  --gray-50: #1E293B;
+  --gray-100: #1E293B;
+  --gray-200: #334155;
+  --gray-300: #475569;
+  --gray-400: #64748B;
+  --gray-500: #94A3B8;
+  --gray-600: #CBD5E1;
+  --gray-700: #E2E8F0;
+  --border: rgba(255, 255, 255, 0.08);
+  --text-muted: #94A3B8;
+  --input-bg: #0F172A;
+  --primary-50: rgba(99, 91, 255, 0.15);
+  --success-50: rgba(22, 163, 74, 0.15);
+  --skeleton-base: #1E293B;
+  --skeleton-shine: #334155;
+}
+body.dark header.site-header { background: rgba(11, 15, 26, 0.85); }
+body.dark .mode-toggle { background: var(--gray-100); }
+body.dark .mode-toggle .slider { background: var(--gray-50); }
+body.dark .field input { background: var(--input-bg); color: var(--dark); }
+body.dark .amount-input-wrap input { background: var(--input-bg); }
+body.dark .merchant-display { background: linear-gradient(135deg, var(--primary-50), rgba(139, 124, 255, 0.08)); }
+body.dark .progress-stat { background: var(--gray-50); }
+body.dark .summary-grid { background: var(--gray-50); }
+body.dark .upi-display { background: var(--gray-50); }
+body.dark .modal { background: var(--card); }
+body.dark .toast { background: var(--card); }
+body.dark .btn-outline { background: var(--card); color: var(--dark); }
+body.dark .btn-ghost { background: var(--gray-100); color: var(--gray-600); }
+body.dark .btn-ghost:hover:not(:disabled) { background: var(--gray-200); }
+body.dark .step-circle { background: var(--card); }
+body.dark .payment-card { background: var(--card); }
+body.dark .qr-container { background: var(--card); }
+body.dark .empty-state .icon { background: linear-gradient(135deg, var(--primary-50), rgba(139, 124, 255, 0.15)); }
+body.dark .scanner-placeholder { color: #64748B; }
+body.dark .complete-icon { box-shadow: 0 10px 30px rgba(22, 163, 74, 0.4); }
 
 *, *::before, *::after { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; }
-html { -webkit-text-size-adjust: 100%; }
+html { -webkit-text-size-adjust: 100%; touch-action: manipulation; }
 body {
   font-family: var(--font);
   font-size: 16px;
@@ -57,6 +103,8 @@ body {
   min-height: 100dvh;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
+  touch-action: manipulation;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
 input { font-family: inherit; }
@@ -66,13 +114,37 @@ input { font-family: inherit; }
   z-index: 0; pointer-events: none; opacity: 0.55;
 }
 
+/* Offline Banner */
+.offline-banner {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 200;
+  background: linear-gradient(90deg, #DC2626, #B91C1C);
+  color: white;
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transform: translateY(-100%);
+  transition: transform 0.3s ease;
+}
+.offline-banner.show { transform: translateY(0); }
+.offline-banner svg { flex-shrink: 0; }
+body.dark .offline-banner { background: linear-gradient(90deg, #991B1B, #7F1D1D); }
+
 header.site-header {
   position: sticky; top: 0; z-index: 100; height: var(--header-h);
   background: rgba(255, 255, 255, 0.85);
   backdrop-filter: saturate(180%) blur(16px);
   border-bottom: 1px solid var(--border);
   display: flex; align-items: center; padding: 0 20px;
+  transition: background-color 0.3s ease;
 }
+body.offline header.site-header { top: 38px; }
 .header-inner {
   max-width: var(--container); width: 100%; margin: 0 auto;
   display: flex; align-items: center; justify-content: space-between; gap: 16px;
@@ -80,12 +152,30 @@ header.site-header {
 .brand { display: flex; align-items: center; gap: 10px; }
 .brand-logo {
   width: 38px; height: 38px; border-radius: 10px;
-  /* background: linear-gradient(135deg, var(--primary), #8B7CFF); */
+  background: linear-gradient(135deg, var(--primary), #8B7CFF);
   display: grid; place-items: center; color: white; font-weight: 800; font-size: 18px;
   box-shadow: 0 4px 14px rgba(99, 91, 255, 0.35);
 }
 .brand-name { font-size: 19px; font-weight: 800; letter-spacing: -0.02em; color: var(--dark); }
 .brand-tagline { font-size: 11px; font-weight: 500; color: var(--gray-500); letter-spacing: 0.04em; text-transform: uppercase; margin-top: -2px; }
+
+.header-actions { display: flex; align-items: center; gap: 10px; }
+
+/* Dark mode toggle */
+.theme-toggle {
+  width: 40px; height: 40px;
+  border-radius: 10px;
+  background: var(--gray-100);
+  display: grid; place-items: center;
+  color: var(--gray-600);
+  transition: background 0.2s ease, color 0.2s ease;
+}
+.theme-toggle:hover { background: var(--gray-200); color: var(--dark); }
+.theme-toggle svg { width: 20px; height: 20px; }
+.theme-toggle .icon-sun { display: none; }
+.theme-toggle .icon-moon { display: block; }
+body.dark .theme-toggle .icon-sun { display: block; }
+body.dark .theme-toggle .icon-moon { display: none; }
 
 .mode-toggle {
   display: inline-flex; background: var(--gray-100); padding: 4px;
@@ -113,6 +203,7 @@ main.app {
   box-shadow: var(--shadow); border: 1px solid var(--border);
   padding: 24px; margin-bottom: 18px;
   animation: cardIn 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 @keyframes cardIn { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
 
@@ -174,10 +265,28 @@ main.app {
 .field { margin-bottom: 16px; }
 .field:last-child { margin-bottom: 0; }
 .field label { display: block; font-size: 13px; font-weight: 600; color: var(--gray-700); margin-bottom: 8px; }
+.field-input-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.field-input-row input { flex: 1; }
+.copy-btn {
+  width: 44px; height: 44px;
+  border-radius: 12px;
+  background: var(--gray-100);
+  color: var(--gray-600);
+  display: grid; place-items: center;
+  flex-shrink: 0;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+.copy-btn:hover { background: var(--gray-200); color: var(--primary); }
+.copy-btn.copied { background: var(--success-50); color: var(--success); }
+.copy-btn svg { width: 18px; height: 18px; }
 .field input {
   width: 100%; padding: 14px 16px; font-size: 15px;
   border: 1.5px solid var(--gray-200); border-radius: var(--radius);
-  background: white; transition: border-color 0.2s ease, box-shadow 0.2s ease; color: var(--dark);
+  background: var(--input-bg); transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.3s ease; color: var(--dark);
 }
 .field input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 4px rgba(99, 91, 255, 0.12); }
 .field input:disabled { background: var(--gray-50); color: var(--gray-600); }
@@ -215,6 +324,48 @@ main.app {
 .merchant-name { font-size: 14px; font-weight: 600; color: var(--dark); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .merchant-upi { font-size: 13px; font-family: var(--mono); color: var(--gray-600); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
+/* Recent merchants */
+.recent-merchants {
+  margin-top: 16px;
+  border-top: 1px solid var(--border);
+  padding-top: 16px;
+}
+.recent-merchants-title {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--gray-500);
+  margin-bottom: 10px;
+}
+.recent-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.recent-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  background: var(--gray-50);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+.recent-item:hover { background: var(--gray-100); border-color: var(--primary); }
+.recent-item-avatar {
+  width: 36px; height: 36px; border-radius: 10px;
+  background: linear-gradient(135deg, var(--primary), #8B7CFF);
+  color: white; font-weight: 700; font-size: 14px;
+  display: grid; place-items: center; flex-shrink: 0;
+}
+.recent-item-info { min-width: 0; flex: 1; }
+.recent-item-name { font-size: 13px; font-weight: 600; color: var(--dark); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.recent-item-upi { font-size: 11px; font-family: var(--mono); color: var(--gray-500); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.recent-item-time { font-size: 10px; color: var(--gray-400); flex-shrink: 0; }
+
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
   padding: 14px 22px; font-size: 15px; font-weight: 600; border-radius: 12px;
@@ -248,41 +399,129 @@ main.app {
 .empty-state h3 { font-size: 18px; font-weight: 700; margin: 0 0 6px; color: var(--dark); }
 .empty-state p { font-size: 14px; color: var(--gray-500); margin: 0 0 22px; }
 
-.stepper {
-  display: flex; align-items: center; justify-content: space-between;
-  position: relative; padding: 10px 4px 30px; margin: 0 4px 24px;
+.stepper-wrapper { padding: 8px 4px 16px; }
+
+.progress-summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 16px;
 }
-.stepper::before {
-  content: ''; position: absolute; top: 28px; left: 18px; right: 18px;
-  height: 2px; background: var(--gray-200); z-index: 0;
+.progress-stat {
+  background: var(--gray-50);
+  border: 1px solid var(--gray-200);
+  border-radius: 12px;
+  padding: 14px 8px 10px;
+  text-align: center;
 }
-.stepper-progress-line {
-  position: absolute; top: 28px; left: 18px; height: 2px;
+.progress-stat .stat-value {
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--dark);
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+.progress-stat .stat-value .rupee {
+  font-size: 16px;
+  font-weight: 700;
+  margin-right: 1px;
+  opacity: 0.7;
+}
+.progress-stat .stat-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--gray-500);
+  margin-top: 6px;
+}
+.progress-stat .stat-count {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--gray-400);
+  margin-top: 2px;
+}
+.progress-stat.total .stat-value { color: var(--primary); }
+.progress-stat.done .stat-value { color: var(--success); }
+.progress-stat.left .stat-value { color: var(--danger); }
+
+.stepper-bar-wrap {
+  width: 100%;
+  height: 8px;
+  background: var(--gray-200);
+  border-radius: 999px;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+.stepper-bar-fill {
+  height: 100%;
   background: linear-gradient(90deg, var(--success), var(--primary));
-  z-index: 1; transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1); width: 0;
+  border-radius: 999px;
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  width: 0;
 }
+
+.stepper-track {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  max-width: 100%;
+  padding: 4px 0;
+}
+
 .step {
-  position: relative; z-index: 2; display: flex; flex-direction: column;
-  align-items: center; gap: 8px; flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
 }
 .step-circle {
-  width: 36px; height: 36px; border-radius: 50%; background: white;
-  border: 2.5px solid var(--gray-300); color: var(--gray-500);
-  display: grid; place-items: center; font-weight: 700; font-size: 13px;
-  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1); position: relative;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: white;
+  border: 2.5px solid var(--gray-300);
+  color: var(--gray-500);
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: 12px;
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
-.step-label { font-size: 11px; font-weight: 600; color: var(--gray-500); transition: color 0.3s ease; }
+.step-label {
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--gray-500);
+  transition: color 0.3s ease;
+  white-space: nowrap;
+  max-width: 44px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .step.active .step-circle {
-  border-color: var(--primary); background: var(--primary); color: white;
-  box-shadow: 0 0 0 6px rgba(99, 91, 255, 0.18); transform: scale(1.08);
+  border-color: var(--primary);
+  background: var(--primary);
+  color: white;
+  box-shadow: 0 0 0 5px rgba(99, 91, 255, 0.18);
+  transform: scale(1.1);
 }
 .step.active .step-label { color: var(--primary); font-weight: 700; }
 .step.completed .step-circle {
-  border-color: var(--success); background: var(--success); color: white; transform: scale(1);
+  border-color: var(--success);
+  background: var(--success);
+  color: white;
 }
 .step.completed .step-label { color: var(--success); }
 .step.completed .step-circle svg { animation: checkPop 0.4s cubic-bezier(0.2, 1.3, 0.5, 1) both; }
 @keyframes checkPop { from { transform: scale(0) rotate(-45deg); } to { transform: scale(1) rotate(0); } }
+
+.stepper-track.compact .step-circle { width: 26px; height: 26px; font-size: 11px; }
+.stepper-track.compact .step-label { font-size: 8px; max-width: 36px; }
+.stepper-track.compact { gap: 6px; }
 
 .payment-card {
   background: white; border-radius: var(--radius-lg); box-shadow: var(--shadow-md);
@@ -296,18 +535,72 @@ main.app {
 }
 @keyframes shimmer { to { background-position: -200% 0; } }
 .payment-counter { font-size: 13px; font-weight: 600; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 16px; }
+
 .qr-container {
-  background: white; padding: 24px; border-radius: 16px; display: inline-block;
-  border: 1.5px solid var(--gray-100); margin: 0 auto 18px; box-shadow: var(--shadow-sm);
+  background: white;
+  padding: 16px;
+  border-radius: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid var(--gray-100);
+  margin: 0 auto 18px;
+  box-shadow: var(--shadow-sm);
+  max-width: 280px;
+  width: 100%;
+  min-height: 180px;
+  position: relative;
 }
-.qr-container canvas, .qr-container img { display: block !important; max-width: 100%; height: auto !important; }
+.qr-container img { display: none !important; }
+.qr-container table { margin: 0 auto !important; border-collapse: collapse; }
+.qr-container table td { padding: 0 !important; }
+.qr-container canvas { display: block !important; max-width: 100% !important; height: auto !important; }
+
+/* Skeleton loading */
+.skeleton {
+  position: absolute;
+  inset: 16px;
+  border-radius: 12px;
+  background: linear-gradient(90deg, var(--skeleton-base) 0%, var(--skeleton-shine) 50%, var(--skeleton-base) 100%);
+  background-size: 200% 100%;
+  animation: skeletonShimmer 1.5s ease-in-out infinite;
+}
+@keyframes skeletonShimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+.skeleton::after {
+  content: 'Generating QR...';
+  position: absolute;
+  bottom: -28px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--gray-500);
+  white-space: nowrap;
+}
+
 .amount-display { font-size: 38px; font-weight: 800; letter-spacing: -0.02em; color: var(--dark); margin: 8px 0 4px; font-variant-numeric: tabular-nums; }
 .amount-display .rs { color: var(--primary); }
 .upi-display {
   font-family: var(--mono); font-size: 14px; color: var(--gray-600);
   padding: 8px 14px; background: var(--gray-50); border-radius: 8px;
-  display: inline-block; margin-bottom: 22px; word-break: break-all;
+  display: inline-flex; align-items: center; gap: 8px;
+  margin-bottom: 22px; word-break: break-all;
 }
+.upi-display .copy-inline {
+  width: 28px; height: 28px;
+  border-radius: 6px;
+  background: var(--gray-100);
+  color: var(--gray-500);
+  display: grid; place-items: center;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+  flex-shrink: 0;
+}
+.upi-display .copy-inline:hover { background: var(--primary-50); color: var(--primary); }
+.upi-display .copy-inline svg { width: 14px; height: 14px; }
 .payment-buttons { display: grid; gap: 10px; margin-top: 4px; }
 
 .complete-screen { text-align: center; padding: 20px 10px 10px; }
@@ -335,6 +628,7 @@ main.app {
   z-index: 1000; display: flex; flex-direction: column; gap: 8px;
   width: calc(100% - 32px); max-width: 420px; pointer-events: none;
 }
+body.offline .toast-wrap { top: 58px; }
 .toast {
   background: white; border-radius: 12px; padding: 14px 16px;
   box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); border: 1px solid var(--border);
@@ -370,12 +664,15 @@ footer.app-footer { text-align: center; padding: 20px; color: var(--gray-500); f
 @media (min-width: 640px) {
   main.app { padding: 32px 24px 100px; }
   .payment-buttons { grid-template-columns: 1fr 1fr; }
+  .qr-container { max-width: 320px; padding: 20px; }
+  .progress-stat .stat-value { font-size: 28px; }
 }
 @media (min-width: 900px) {
   :root { --header-h: 76px; }
   main.app { padding: 36px 28px 120px; }
   .card { padding: 30px; }
   .amount-display { font-size: 44px; }
+  .qr-container { max-width: 360px; padding: 24px; }
 }
 @media (max-width: 420px) {
   header.site-header { padding: 0 12px; }
@@ -384,8 +681,15 @@ footer.app-footer { text-align: center; padding: 20px; color: var(--gray-500); f
   .mode-btn { padding: 8px 12px; min-width: 72px; font-size: 13px; }
   .card { padding: 18px; border-radius: var(--radius); }
   .amount-display { font-size: 32px; }
-  .qr-container { padding: 16px; }
+  .qr-container { padding: 12px; max-width: 240px; min-height: 150px; }
   .summary-grid { grid-template-columns: 1fr; gap: 14px; text-align: left; }
+  .step-circle { width: 26px; height: 26px; font-size: 11px; }
+  .step-label { font-size: 8px; max-width: 34px; }
+  .stepper-track { gap: 5px; }
+  .progress-stat .stat-value { font-size: 20px; }
+  .progress-stat .stat-value .rupee { font-size: 13px; }
+  .progress-stat { padding: 10px 6px 8px; }
+  .progress-summary { gap: 6px; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
@@ -398,23 +702,34 @@ footer.app-footer { text-align: center; padding: 20px; color: var(--gray-500); f
 <body>
 
 <canvas id="bg-canvas" aria-hidden="true"></canvas>
+
+<!-- Offline Banner -->
+<div class="offline-banner" id="offlineBanner" role="status">
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
+  <span id="offlineText">You're offline. QR codes will still work, but scanner may not.</span>
+</div>
+
 <div class="toast-wrap" id="toastWrap" aria-live="polite" aria-atomic="true"></div>
 
 <header class="site-header" role="banner">
   <div class="header-inner">
     <div class="brand">
-      <div class="brand-logo" aria-hidden="true">
-        <img src="app-logo.png" style="width: inherit;">
-      </div>
+      <div class="brand-logo" aria-hidden="true">S</div>
       <div>
         <div class="brand-name">SplitPay</div>
         <div class="brand-tagline">Scan. Split. Pay.</div>
       </div>
     </div>
-    <div class="mode-toggle" id="modeToggle" role="tablist" aria-label="Application mode" data-mode="customer">
-      <div class="slider" aria-hidden="true"></div>
-      <button class="mode-btn active" id="btnCustomer" role="tab" aria-selected="true" data-mode="customer">Customer</button>
-      <button class="mode-btn" id="btnMerchant" role="tab" aria-selected="false" data-mode="merchant">Merchant</button>
+    <div class="header-actions">
+      <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode" title="Toggle theme">
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      </button>
+      <div class="mode-toggle" id="modeToggle" role="tablist" aria-label="Application mode" data-mode="customer">
+        <div class="slider" aria-hidden="true"></div>
+        <button class="mode-btn active" id="btnCustomer" role="tab" aria-selected="true" data-mode="customer">Customer</button>
+        <button class="mode-btn" id="btnMerchant" role="tab" aria-selected="false" data-mode="merchant">Merchant</button>
+      </div>
     </div>
   </div>
 </header>
@@ -441,6 +756,11 @@ footer.app-footer { text-align: center; padding: 20px; color: var(--gray-500); f
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
             Saved
           </span>
+        </div>
+        <!-- Recent Merchants List -->
+        <div class="recent-merchants hidden" id="recentMerchants">
+          <div class="recent-merchants-title">Recent Merchants</div>
+          <div class="recent-list" id="recentList"></div>
         </div>
       </div>
     </div>
@@ -479,7 +799,12 @@ footer.app-footer { text-align: center; padding: 20px; color: var(--gray-500); f
       <div class="section-title"><span class="dot"></span> Payment Details</div>
       <div class="field">
         <label for="upiIdInput">UPI ID (VPA)</label>
-        <input type="text" id="upiIdInput" placeholder="name@bank" autocomplete="off" spellcheck="false" inputmode="email"/>
+        <div class="field-input-row">
+          <input type="text" id="upiIdInput" placeholder="name@bank" autocomplete="off" spellcheck="false" inputmode="email"/>
+          <button class="copy-btn" id="copyUpiBtn" aria-label="Copy UPI ID" title="Copy UPI ID">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          </button>
+        </div>
         <div class="help">Format: identifier@handle (e.g. merchant@upi)</div>
         <div class="error-msg" id="upiIdError" role="alert">Please enter a valid UPI ID.</div>
       </div>
@@ -506,12 +831,44 @@ footer.app-footer { text-align: center; padding: 20px; color: var(--gray-500); f
   <section id="viewPayment" class="view" aria-label="Payment flow">
     <div class="card">
       <div class="section-title"><span class="dot"></span> Payment Progress</div>
-      <div class="stepper" id="stepper" role="progressbar" aria-valuemin="1" aria-valuemax="1" aria-valuenow="1"></div>
+      
+      <div class="stepper-wrapper">
+        <div class="progress-summary" id="progressSummary">
+          <div class="progress-stat total">
+            <div class="stat-value" id="statTotal"><span class="rupee">₹</span>0</div>
+            <div class="stat-label">Total Amount</div>
+            <div class="stat-count" id="statTotalCount">0 payments</div>
+          </div>
+          <div class="progress-stat done">
+            <div class="stat-value" id="statDone"><span class="rupee">₹</span>0</div>
+            <div class="stat-label">Paid</div>
+            <div class="stat-count" id="statDoneCount">0 done</div>
+          </div>
+          <div class="progress-stat left">
+            <div class="stat-value" id="statLeft"><span class="rupee">₹</span>0</div>
+            <div class="stat-label">Remaining</div>
+            <div class="stat-count" id="statLeftCount">0 left</div>
+          </div>
+        </div>
+        
+        <div class="stepper-bar-wrap">
+          <div class="stepper-bar-fill" id="stepperBar"></div>
+        </div>
+        
+        <div class="stepper-track" id="stepperTrack"></div>
+      </div>
+      
       <div class="payment-card" id="paymentCard">
         <div class="payment-counter" id="paymentCounter">Payment 1 of 1</div>
-        <div class="qr-container" id="qrContainer" aria-label="Payment QR code"></div>
+        <div class="qr-container" id="qrContainer" aria-label="Payment QR code">
+          <div class="skeleton" id="qrSkeleton"></div>
+        </div>
         <div class="amount-display" id="paymentAmount"><span class="rs">₹</span>0</div>
-        <div class="upi-display" id="paymentUpi">—</div>
+        <div class="upi-display" id="paymentUpi">—
+          <button class="copy-inline" id="copyUpiInlineBtn" aria-label="Copy UPI ID" title="Copy">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          </button>
+        </div>
         <div class="payment-buttons">
           <button class="btn btn-primary" id="btnPayNow">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></svg>
@@ -539,7 +896,7 @@ footer.app-footer { text-align: center; padding: 20px; color: var(--gray-500); f
       <p class="subtitle">You've finished all payment chunks.</p>
       <div class="summary-grid">
         <div class="summary-item">
-          <div class="lbl">Total</div>
+          <div class="lbl">Total Paid</div>
           <div class="val big" id="sumTotal">₹0</div>
         </div>
         <div class="summary-item">
@@ -565,14 +922,28 @@ footer.app-footer { text-align: center; padding: 20px; color: var(--gray-500); f
 
 <script>
 const Storage = (() => {
-  const KEYS = { MERCHANT: 'splitpay_merchant', MODE: 'splitpay_mode' };
+  const KEYS = {
+    MERCHANT: 'splitpay_merchant',
+    MODE: 'splitpay_mode',
+    THEME: 'splitpay_theme',
+    SESSION: 'splitpay_session',
+    RECENT: 'splitpay_recent_merchants'
+  };
   function safeGet(key) { try { return JSON.parse(localStorage.getItem(key)); } catch { return null; } }
   function safeSet(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) { console.warn('Storage failed', e); } }
+  function remove(key) { try { localStorage.removeItem(key); } catch {} }
   return {
     getMerchant() { return safeGet(KEYS.MERCHANT); },
     saveMerchant(data) { safeSet(KEYS.MERCHANT, { upiId: data.upiId, name: data.name || '', source: data.source || 'qr', updatedAt: Date.now() }); },
     getMode() { return safeGet(KEYS.MODE) || 'customer'; },
-    setMode(mode) { safeSet(KEYS.MODE, mode); }
+    setMode(mode) { safeSet(KEYS.MODE, mode); },
+    getTheme() { return safeGet(KEYS.THEME) || 'light'; },
+    setTheme(theme) { safeSet(KEYS.THEME, theme); },
+    getSession() { return safeGet(KEYS.SESSION); },
+    saveSession(data) { safeSet(KEYS.SESSION, { ...data, savedAt: Date.now() }); },
+    clearSession() { remove(KEYS.SESSION); },
+    getRecent() { return safeGet(KEYS.RECENT) || []; },
+    saveRecent(list) { safeSet(KEYS.RECENT, list); }
   };
 })();
 
@@ -682,7 +1053,7 @@ const Scanner = (() => {
         if (!active) return;
         const parsed = parseUpiPayload(decodedText);
         if (parsed) {
-          if (navigator.vibrate) navigator.vibrate(200); // Vibration effect on successful scan
+          if (navigator.vibrate) navigator.vibrate(200);
           stop();
           onDetected(parsed);
         } else {
@@ -710,10 +1081,18 @@ const Scanner = (() => {
 
 const QRGen = (() => {
   function renderInto(container, url) {
+    // Remove skeleton if present
+    const skeleton = container.querySelector('.skeleton');
+    if (skeleton) skeleton.remove();
+    
     container.innerHTML = '';
-    // Increased QR code size for better scanning
-    const size = Math.min(300, Math.max(240, container.clientWidth - 48));
-    new QRCode(container, {
+    const containerWidth = container.clientWidth - 32;
+    const size = Math.min(240, Math.max(160, containerWidth));
+    const qrWrapper = document.createElement('div');
+    qrWrapper.style.width = size + 'px';
+    qrWrapper.style.height = size + 'px';
+    container.appendChild(qrWrapper);
+    new QRCode(qrWrapper, {
       text: url,
       width: size,
       height: size,
@@ -722,7 +1101,10 @@ const QRGen = (() => {
       colorLight: '#ffffff'
     });
   }
-  return { renderInto };
+  function showSkeleton(container) {
+    container.innerHTML = '<div class="skeleton"></div>';
+  }
+  return { renderInto, showSkeleton };
 })();
 
 const BackgroundFX = (() => {
@@ -841,12 +1223,74 @@ const UI = (() => {
       setTimeout(() => c.remove(), 2500);
     }
   }
-  return { toast, confirm, switchView, confetti };
+  async function copyToClipboard(text, btnEl) {
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(text);
+      } else {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+      }
+      if (btnEl) {
+        btnEl.classList.add('copied');
+        setTimeout(() => btnEl.classList.remove('copied'), 1500);
+      }
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+  return { toast, confirm, switchView, confetti, copyToClipboard };
+})();
+
+// Recent Merchants Manager
+const RecentMerchants = (() => {
+  const MAX_RECENT = 5;
+  function getAll() { return Storage.getRecent(); }
+  function add(merchant) {
+    if (!merchant || !merchant.upiId) return;
+    let list = getAll().filter(m => m.upiId !== merchant.upiId);
+    list.unshift({
+      upiId: merchant.upiId,
+      name: merchant.name || merchant.upiId.split('@')[0],
+      addedAt: Date.now()
+    });
+    list = list.slice(0, MAX_RECENT);
+    Storage.saveRecent(list);
+  }
+  function remove(upiId) {
+    const list = getAll().filter(m => m.upiId !== upiId);
+    Storage.saveRecent(list);
+  }
+  return { getAll, add, remove };
 })();
 
 const App = (() => {
   const state = { mode: 'customer', merchant: null, upiId: '', payeeName: '', amountPaise: 0, chunks: [], currentIdx: 0 };
   const $ = (id) => document.getElementById(id);
+
+  // Dark mode
+  function applyTheme(theme) {
+    document.body.classList.toggle('dark', theme === 'dark');
+    Storage.setTheme(theme);
+  }
+  function toggleTheme() {
+    const current = document.body.classList.contains('dark') ? 'dark' : 'light';
+    applyTheme(current === 'dark' ? 'light' : 'dark');
+  }
+
+  // Offline detection
+  function updateOfflineStatus() {
+    const isOffline = !navigator.onLine;
+    document.body.classList.toggle('offline', isOffline);
+    $('offlineBanner').classList.toggle('show', isOffline);
+  }
 
   function setMode(mode) {
     state.mode = mode;
@@ -858,6 +1302,9 @@ const App = (() => {
     $('btnCustomer').setAttribute('aria-selected', mode === 'customer');
     $('btnMerchant').setAttribute('aria-selected', mode === 'merchant');
     $('merchantPanel').style.display = (mode === 'merchant') ? 'block' : 'none';
+    if (mode === 'merchant') {
+      renderRecentMerchants();
+    }
     if (mode === 'merchant' && state.merchant) {
       $('upiIdInput').value = state.merchant.upiId || '';
       $('payeeNameInput').value = state.merchant.name || '';
@@ -879,6 +1326,67 @@ const App = (() => {
     const displayName = state.merchant.name || state.merchant.upiId.split('@')[0];
     $('merchantName').textContent = displayName;
     $('merchantAvatar').textContent = (displayName[0] || 'M').toUpperCase();
+    renderRecentMerchants();
+  }
+
+  function renderRecentMerchants() {
+    const recent = RecentMerchants.getAll();
+    const container = $('recentMerchants');
+    const list = $('recentList');
+    if (recent.length === 0) {
+      container.classList.add('hidden');
+      return;
+    }
+    container.classList.remove('hidden');
+    list.innerHTML = '';
+    recent.forEach(m => {
+      const item = document.createElement('div');
+      item.className = 'recent-item';
+      item.setAttribute('role', 'button');
+      item.setAttribute('tabindex', '0');
+      item.setAttribute('aria-label', `Use merchant ${m.name || m.upiId}`);
+      const initial = (m.name || m.upiId.split('@')[0])[0].toUpperCase();
+      const timeAgo = getTimeAgo(m.addedAt);
+      item.innerHTML = `
+        <div class="recent-item-avatar">${initial}</div>
+        <div class="recent-item-info">
+          <div class="recent-item-name">${escapeHtml(m.name || m.upiId)}</div>
+          <div class="recent-item-upi">${escapeHtml(m.upiId)}</div>
+        </div>
+        <div class="recent-item-time">${timeAgo}</div>
+      `;
+      const selectMerchant = () => {
+        state.merchant = { upiId: m.upiId, name: m.name || '' };
+        Storage.saveMerchant(state.merchant);
+        $('upiIdInput').value = m.upiId;
+        $('payeeNameInput').value = m.name || '';
+        state.upiId = m.upiId;
+        state.payeeName = m.name || '';
+        renderMerchant();
+        flashSavedBadge();
+        validateForm();
+        UI.toast('Merchant selected from recent', 'success');
+      };
+      item.addEventListener('click', selectMerchant);
+      item.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectMerchant(); } });
+      list.appendChild(item);
+    });
+  }
+
+  function getTimeAgo(ts) {
+    if (!ts) return '';
+    const diff = Date.now() - ts;
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1) return 'now';
+    if (mins < 60) return `${mins}m ago`;
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return `${hrs}h ago`;
+    const days = Math.floor(hrs / 24);
+    return `${days}d ago`;
+  }
+
+  function escapeHtml(str) {
+    return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   }
 
   function flashSavedBadge() {
@@ -928,11 +1436,16 @@ const App = (() => {
     if (state.mode === 'merchant') {
       state.merchant = { upiId, name };
       Storage.saveMerchant({ upiId, name });
+      RecentMerchants.add({ upiId, name });
       renderMerchant();
       flashSavedBadge();
       UI.toast('Merchant UPI ID updated.', 'success');
+    } else {
+      // Also add to recent for customer mode
+      RecentMerchants.add({ upiId, name });
     }
     validateForm();
+    saveSession();
   }
 
   window.addEventListener('scan:invalid', () => {
@@ -973,18 +1486,39 @@ const App = (() => {
     state.amountPaise = v.paise;
     state.chunks = Splitter.splitPaise(state.amountPaise);
     state.currentIdx = 0;
+    saveSession();
     renderStepper();
     renderCurrentPayment();
     UI.switchView('viewPayment');
   }
 
+  function sumChunksPaise(from, to) {
+    let sum = 0;
+    for (let i = from; i <= to && i < state.chunks.length; i++) {
+      sum += state.chunks[i];
+    }
+    return sum;
+  }
+
   function renderStepper() {
-    const el = $('stepper');
-    el.innerHTML = '';
-    const line = document.createElement('div');
-    line.className = 'stepper-progress-line';
-    line.id = 'stepperLine';
-    el.appendChild(line);
+    const total = state.chunks.length;
+    const track = $('stepperTrack');
+    track.innerHTML = '';
+    
+    if (total > 8) {
+      track.classList.add('compact');
+    } else {
+      track.classList.remove('compact');
+    }
+    
+    const totalPaise = state.amountPaise;
+    $('statTotal').innerHTML = `<span class="rupee">₹</span>${Splitter.paiseToInr(totalPaise)}`;
+    $('statTotalCount').textContent = `${total} payment${total !== 1 ? 's' : ''}`;
+    $('statDone').innerHTML = `<span class="rupee">₹</span>0`;
+    $('statDoneCount').textContent = '0 done';
+    $('statLeft').innerHTML = `<span class="rupee">₹</span>${Splitter.paiseToInr(totalPaise)}`;
+    $('statLeftCount').textContent = `${total} left`;
+    
     state.chunks.forEach((_, idx) => {
       const step = document.createElement('div');
       step.className = 'step';
@@ -992,27 +1526,45 @@ const App = (() => {
       step.innerHTML = `
         <div class="step-circle">
           <span class="num">${idx + 1}</span>
-          <svg class="hidden" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          <svg class="hidden" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
         </div>
         <div class="step-label">${Splitter.paiseToInr(state.chunks[idx])}</div>`;
-      el.appendChild(step);
+      track.appendChild(step);
     });
-    el.setAttribute('aria-valuemax', state.chunks.length);
+    
     updateStepperState();
   }
 
   function updateStepperState() {
-    const steps = $('stepper').querySelectorAll('.step');
+    const steps = $('stepperTrack').querySelectorAll('.step');
+    const total = state.chunks.length;
+    const current = state.currentIdx;
+    const done = current;
+    const left = total - current;
+    
+    const totalPaise = state.amountPaise;
+    const donePaise = done > 0 ? sumChunksPaise(0, done - 1) : 0;
+    const leftPaise = left > 0 ? sumChunksPaise(current, total - 1) : 0;
+    
+    $('statTotal').innerHTML = `<span class="rupee">₹</span>${Splitter.paiseToInr(totalPaise)}`;
+    $('statTotalCount').textContent = `${total} payment${total !== 1 ? 's' : ''}`;
+    $('statDone').innerHTML = `<span class="rupee">₹</span>${Splitter.paiseToInr(donePaise)}`;
+    $('statDoneCount').textContent = `${done} done`;
+    $('statLeft').innerHTML = `<span class="rupee">₹</span>${Splitter.paiseToInr(leftPaise)}`;
+    $('statLeftCount').textContent = `${left} left`;
+    
+    const progressPercent = total > 1 ? (done / (total - 1)) * 100 : 0;
+    $('stepperBar').style.width = progressPercent + '%';
+    
     steps.forEach((s, i) => {
       s.classList.remove('active', 'completed');
-      const circle = s.querySelector('.step-circle');
       const num = s.querySelector('.num');
       const svg = s.querySelector('svg');
-      if (i < state.currentIdx) {
+      if (i < current) {
         s.classList.add('completed');
         num.classList.add('hidden');
         svg.classList.remove('hidden');
-      } else if (i === state.currentIdx) {
+      } else if (i === current) {
         s.classList.add('active');
         num.classList.remove('hidden');
         svg.classList.add('hidden');
@@ -1021,15 +1573,6 @@ const App = (() => {
         svg.classList.add('hidden');
       }
     });
-    const total = state.chunks.length;
-    const line = $('stepperLine');
-    if (total > 1 && line) {
-      const fraction = state.currentIdx / (total - 1);
-      line.style.width = `calc(${fraction * 100}% - ${fraction * 36}px)`;
-    } else if (line) {
-      line.style.width = '0';
-    }
-    $('stepper').setAttribute('aria-valuenow', state.currentIdx + 1);
   }
 
   function renderCurrentPayment() {
@@ -1038,10 +1581,24 @@ const App = (() => {
     const total = state.chunks.length;
     $('paymentCounter').textContent = `Payment ${idx + 1} of ${total}`;
     $('paymentAmount').innerHTML = `<span class="rs">₹</span>${Splitter.paiseToInr(chunk)}`;
-    $('paymentUpi').textContent = state.upiId;
+    $('paymentUpi').innerHTML = `${escapeHtml(state.upiId)}
+      <button class="copy-inline" id="copyUpiInlineBtn" aria-label="Copy UPI ID" title="Copy">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+      </button>`;
+    // Re-bind inline copy
+    $('copyUpiInlineBtn').addEventListener('click', () => {
+      UI.copyToClipboard(state.upiId, $('copyUpiInlineBtn'));
+    });
+    
     const upiUrl = Splitter.buildUpiUrl({ upiId: state.upiId, name: state.payeeName, amountPaise: chunk });
-    QRGen.renderInto($('qrContainer'), upiUrl);
     $('paymentCard').dataset.upiUrl = upiUrl;
+    
+    // Skeleton loading state
+    QRGen.showSkeleton($('qrContainer'));
+    setTimeout(() => {
+      QRGen.renderInto($('qrContainer'), upiUrl);
+    }, 400);
+    
     const isLast = idx === total - 1;
     $('btnNextLabel').textContent = isLast ? 'Complete' : 'Next';
     $('btnNext').classList.toggle('btn-success', isLast);
@@ -1064,12 +1621,14 @@ const App = (() => {
     });
     if (!confirmed) return;
     state.currentIdx += 1;
+    saveSession();
     updateStepperState();
     if (isLast) showCompletion();
     else renderCurrentPayment();
   }
 
   function showCompletion() {
+    Storage.clearSession();
     $('sumTotal').textContent = '₹' + Splitter.paiseToInr(state.amountPaise);
     $('sumCount').textContent = state.chunks.length;
     $('sumUpi').textContent = state.upiId;
@@ -1077,10 +1636,42 @@ const App = (() => {
     setTimeout(() => UI.confetti($('completeCard').querySelector('.complete-icon')), 250);
   }
 
+  function saveSession() {
+    Storage.saveSession({
+      upiId: state.upiId,
+      payeeName: state.payeeName,
+      amountPaise: state.amountPaise,
+      chunks: state.chunks,
+      currentIdx: state.currentIdx,
+      mode: state.mode
+    });
+  }
+
+  function restoreSession(session) {
+    if (!session) return false;
+    state.upiId = session.upiId || '';
+    state.payeeName = session.payeeName || '';
+    state.amountPaise = session.amountPaise || 0;
+    state.chunks = session.chunks || [];
+    state.currentIdx = session.currentIdx || 0;
+    state.mode = session.mode || 'customer';
+    
+    $('upiIdInput').value = state.upiId;
+    $('payeeNameInput').value = state.payeeName;
+    if (state.amountPaise > 0) {
+      const inr = state.amountPaise / 100;
+      $('amountInput').value = Number.isInteger(inr) ? String(inr) : inr.toFixed(2);
+    }
+    setMode(state.mode);
+    validateForm();
+    return true;
+  }
+
   function startNew() {
     state.amountPaise = 0;
     state.chunks = [];
     state.currentIdx = 0;
+    Storage.clearSession();
     $('amountInput').value = '';
     if (state.mode !== 'merchant' || !state.merchant) {
       $('upiIdInput').value = '';
@@ -1125,8 +1716,54 @@ const App = (() => {
     el.value = value;
   }
 
+  async function copyUpiFromField() {
+    const upiId = $('upiIdInput').value.trim();
+    if (!upiId) {
+      UI.toast('No UPI ID to copy', 'error');
+      return;
+    }
+    const ok = await UI.copyToClipboard(upiId, $('copyUpiBtn'));
+    if (ok) UI.toast('UPI ID copied', 'success');
+    else UI.toast('Failed to copy', 'error');
+  }
+
+  async function checkSessionOnLoad() {
+    const session = Storage.getSession();
+    if (!session || !session.chunks || session.chunks.length === 0) return;
+    
+    const savedAt = session.savedAt ? new Date(session.savedAt).toLocaleString() : 'recently';
+    const confirmed = await UI.confirm({
+      title: 'Resume Previous Session?',
+      message: `You have an unfinished payment session saved ${savedAt}. Would you like to continue where you left off?`,
+      confirmText: 'Resume',
+      cancelText: 'Start New'
+    });
+    if (confirmed) {
+      restoreSession(session);
+      if (session.chunks.length > 0) {
+        renderStepper();
+        renderCurrentPayment();
+        UI.switchView('viewPayment');
+        UI.toast('Session restored', 'success');
+      }
+    } else {
+      Storage.clearSession();
+    }
+  }
+
   function init() {
+    // Theme
+    applyTheme(Storage.getTheme());
+    $('themeToggle').addEventListener('click', toggleTheme);
+    
+    // Offline
+    updateOfflineStatus();
+    window.addEventListener('online', updateOfflineStatus);
+    window.addEventListener('offline', updateOfflineStatus);
+    
+    // Mode
     setMode(Storage.getMode());
+    
     const savedMerch = Storage.getMerchant();
     if (savedMerch && savedMerch.upiId) {
       state.merchant = { upiId: savedMerch.upiId, name: savedMerch.name || '' };
@@ -1141,13 +1778,19 @@ const App = (() => {
       renderMerchant();
     }
 
+    // Copy buttons
+    $('copyUpiBtn').addEventListener('click', copyUpiFromField);
+    $('copyUpiInlineBtn').addEventListener('click', () => {
+      UI.copyToClipboard(state.upiId, $('copyUpiInlineBtn'));
+    });
+
     $('btnCustomer').addEventListener('click', () => setMode('customer'));
     $('btnMerchant').addEventListener('click', () => setMode('merchant'));
     $('btnStartScan').addEventListener('click', startScan);
     $('btnStopScan').addEventListener('click', stopScan);
-    $('upiIdInput').addEventListener('input', validateForm);
-    $('payeeNameInput').addEventListener('input', validateForm);
-    $('amountInput').addEventListener('input', (e) => { formatAmountInput(e.target); validateForm(); });
+    $('upiIdInput').addEventListener('input', () => { validateForm(); saveSession(); });
+    $('payeeNameInput').addEventListener('input', () => { validateForm(); saveSession(); });
+    $('amountInput').addEventListener('input', (e) => { formatAmountInput(e.target); validateForm(); saveSession(); });
     $('btnGenerate').addEventListener('click', generate);
     $('btnPayNow').addEventListener('click', payNow);
     $('btnNext').addEventListener('click', next);
@@ -1159,6 +1802,9 @@ const App = (() => {
     document.addEventListener('visibilitychange', () => {
       if (document.hidden && Scanner.isActive()) Scanner.stop().catch(() => {});
     });
+    
+    // Check for saved session
+    setTimeout(checkSessionOnLoad, 300);
   }
 
   return { init };
@@ -1169,3 +1815,4 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 </body>
+</html>
